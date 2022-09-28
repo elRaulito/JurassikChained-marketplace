@@ -1,0 +1,43 @@
+spending marketplace
+
+struct Datum{
+seller:PubKeyHash
+stake:PubKeyHash
+amount:Int
+policyID:MintingPolicyHash
+tokenName:ByteArray
+adaAmount:Int
+adaSet:Int
+}
+
+enum Redeemer{
+Cancel
+BuyToken
+BuyAda
+}
+
+func main(datum: Datum, redeemer:Redeemer, ctx:ScriptContext)->Bool{
+
+ tx:Tx=ctx.tx;
+ token:AssetClass=AssetClass::new(datum.policyID,datum.tokenName);
+ price:Value=tx.outputs_sent_to(datum.seller).head.value;
+ ada:AssetClass=AssetClass::new(MintingPolicyHash::new(#),"".encode_utf8());
+ 
+ //we count how many utxos with datum we have in input
+ datums:Int=tx.inputs.map((x:TxInput)->Int{x.output.datum.switch{None => 0, else => 1}}).fold((sum:Int,x:Int)->Int{sum+x},0);
+
+ redeemer.switch{
+  Cancel=>{
+           (tx.is_signed_by(datum.seller)&&(datums==1)&&(datum.stake!=PubKeyHash::new(#1)))          
+          },
+
+  BuyToken=>{
+        ((price.get(token)>=datum.amount)&&(datums==1))
+       },
+
+  BuyAda=>{
+        ((price.get(ada)>=datum.adaAmount)&&(datums==1)&&(datum.adaSet==1))//only if ADA is allowed
+      }
+  }
+
+}
