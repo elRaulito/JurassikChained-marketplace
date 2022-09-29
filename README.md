@@ -13,3 +13,7 @@ Endpoints are:
 * Cancel: to cancel the listing
 * BuyToken: To buy using tokens
 * BuyAda: To buy using ADA if allowed
+
+## Why do I need to count the datums in in put in the smart contract?
+
+In this way some bad actor will not be able to make a "double satisfaction" attack, it is possible to purchase only one NFT at time
